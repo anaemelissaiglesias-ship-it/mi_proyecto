@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Técnica: Administración de Windows Server e IIS</title>
+    <style>
+        /* Variables y Reseteo Básico */
+        :root {
+            --primary-color: #005a9e;
+            --secondary-color: #0078d4;
+            --dark-bg: #1e1e1e;
+            --light-bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --accent-green: #107c10;
+            --accent-red: #d13438;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Menú Dinámico con CSS Puro */
+        header {
+            background-color: var(--dark-bg);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--secondary-color);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links li {
+            position: relative;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0.8rem;
+            display: block;
+            transition: color 0.3s ease;
+        }
+
+        /* Efecto de subrayado animado en el menú */
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--secondary-color);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-links a:hover {
+            color: #66b2ff;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Submenú desplegable dinámico (CSS Hover) */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #2d2d30;
+            min-width: 210px;
+            list-style: none;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-links li:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu li a {
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .dropdown-menu li a:hover {
+            background-color: var(--secondary-color);
+            color: #fff;
+        }
+
+        .dropdown-menu li a::after {
+            display: none;
+        }
+
+        /* Menú Responsive sin JS (Checkbox Hack) */
+        #menu-toggle {
+            display: none;
+        }
+
+        .menu-icon {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        /* Hero / Banner Principal */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), #002b4d);
+            color: white;
+            text-align: center;
+            padding: 4.5rem 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            max-width: 700px;
+            margin: 0 auto 2rem auto;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #fff;
+            color: var(--primary-color);
+            padding: 0.8rem 1.8rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Contenedor Principal */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        /* Sección: Información Básica (Grid de Tarjetas) */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.8rem;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-top: 4px solid var(--secondary-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+        }
+
+        .card h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        /* Sección: Problemas y Soluciones (Acordeón Nativo HTML5 + CSS) */
+        .troubleshooting-section {
+            background-color: #e9eef5;
+            padding: 3rem 0;
+        }
+
+        .accordion-item {
+            background: var(--card-bg);
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .accordion-item summary {
+            padding: 1.2rem 1.5rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+
+        .accordion-item summary:hover {
+            background-color: #f0f7ff;
+        }
+
+        .accordion-item summary::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-item[open] summary::after {
+            content: '−';
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid #eee;
+            background-color: #fafafa;
+        }
+
+        .badge-problem {
+            display: inline-block;
+            background-color: #fde7e9;
+            color: var(--accent-red);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-solution {
+            display: inline-block;
+            background-color: #dff6dd;
+            color: var(--accent-green);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background-color: #272822;
+            color: #f8f8f2;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-bg);
+            color: #ccc;
+            padding: 3rem 2rem 1.5rem 2rem;
+        }
+
+        .footer-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .footer-col h4 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            border-left: 3px solid var(--secondary-color);
+            padding-left: 0.6rem;
+        }
+
+        .footer-col p, .footer-col li {
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col a {
+            color: #66b2ff;
+            text-decoration: none;
+        }
+
+        .footer-col a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* Adaptabilidad Móvil */
+        @media (max-width: 768px) {
+            .menu-icon {
+                display: block;
+            }
+
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--dark-bg);
+                flex-direction: column;
+                gap: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s ease;
+            }
+
+            #menu-toggle:checked ~ .nav-links {
+                max-height: 400px;
+            }
+
+            .dropdown-menu {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                padding-left: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menú Dinámico -->
+    <header>
+        <nav class="navbar">
+            <a href="#inicio" class="logo">SysAdmin<span>Lab</span></a>
+            
+            <input type="checkbox" id="menu-toggle">
+            <label for="menu-toggle" class="menu-icon">&#9776;</label>
+
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li>
+                    <a href="#informacion">Información Básica &#9662;</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#active-directory">Active Directory</a></li>
+                        <li><a href="#iis-server">Servidor Web IIS</a></li>
+                        <li><a href="#rdp-protocol">Conexión RDP</a></li>
+                    </ul>
+                </li>
+                <li><a href="#problemas">Problemas y Soluciones</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Sección Principal -->
+    <section id="inicio" class="hero">
+        <h1>Administración de Windows Server & IIS</h1>
+        <p>Guía técnica de referencia sobre servicios de directorio, despliegue de aplicaciones web mediante Internet Information Services y gestión segura de conexiones remotas.</p>
+        <a href="#informacion" class="btn">Explorar Documentación</a>
+    </section>
+
+    <!-- Sección: Información Básica -->
+    <section id="informacion" class="container">
+        <h2 class="section-title">Información Básica de Infraestructura</h2>
+        <p class="section-subtitle">Componentes esenciales para el despliegue y administración de servidores empresariales</p>
+
+        <div class="info-grid">
+            <article id="active-directory" class="card">
+                <h3>Active Directory (AD DS)</h3>
+                <p>Servicio de directorio que centraliza la gestión de usuarios, equipos, políticas de seguridad (GPO) y Unidades Organizativas (UO) dentro de un dominio de red, permitiendo delegar permisos de forma granular.</p>
+            </article>
+
+            <article id="iis-server" class="card">
+                <h3>Internet Information Services (IIS)</h3>
+                <p>Servidor web flexible y seguro de Microsoft diseñado para alojar sitios y aplicaciones web. Gestiona peticiones HTTP/HTTPS desde el directorio raíz (habitualmente <code>C:\inetpub\wwwroot</code>).</p>
+            </article>
+
+            <article id="rdp-protocol" class="card">
+                <h3>Escritorio Remoto (RDP)</h3>
+                <p>Protocolo propietario que permite administrar gráficamente un servidor a distancia utilizando por defecto el puerto TCP <code>3389</code>, facilitando tareas de mantenimiento y despliegue.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- Sección: Problemas y Soluciones -->
+    <section id="problemas" class="troubleshooting-section">
+        <div class="container">
+            <h2 class="section-title">Problemas Frecuentes y Soluciones</h2>
+            <p class="section-subtitle">Haz clic sobre cada incidencia para desplegar su diagnóstico y resolución</p>
+
+            <!-- Problema 1 -->
+            <details class="accordion-item" open>
+                <summary>1. Error 403.14 - Forbidden al abrir el sitio en Localhost</summary>
+                <div class="accordion-content">
+                    <span class="badge-problem">Problema</span>
+                    <p>Al ingresar a <code>http://localhost/grupo/usuario/</code>, IIS muestra un error indicando que el servidor está configurado para no mostrar una lista del contenido del directorio.</p>
+                    <span class="badge-solution">Solución</span>
+                    <p>Verifica que el archivo principal se llame exactamente <code>index.html</code> y que no esté dentro de una subcarpeta adicional creada al clonar el repositorio. Si clonaste una carpeta extra, mueve los archivos a la raíz de tu carpeta personal.</p>
+                </div>
+            </details>
+
+            <!-- Problema 2 -->
+            <details class="accordion-item">
+                <summary>2. El usuario creado en Active Directory no puede iniciar sesión por RDP</summary>
+                <div class="accordion-content">
+                    <span class="badge-problem">Problema</span>
+                    <p>El cliente de Escritorio Remoto rechaza el acceso indicando que la cuenta no tiene autorización para iniciar sesión de forma remota.</p>
+                    <span class="badge-solution">Solución</span>
+                    <p>En <em>Usuarios y equipos de Active Directory</em>, abre las propiedades del usuario, ve a la pestaña <strong>Miembro de</strong> y asegúrate de agregarlo al grupo <code>Usuarios de escritorio remoto</code> (Remote Desktop Users).</p>
+                </div>
+            </details>
+
+            <!-- Problema 3 -->
+            <details class="accordion-item">
+                <summary>3. Comando "git" no se reconoce en la consola CMD</summary>
+                <div class="accordion-content">
+                    <span class="badge-problem">Problema</span>
+                    <p>Al ejecutar <code>git clone</code> en el símbolo del sistema del servidor, aparece el mensaje de que el comando no se reconoce como un programa ejecutable.</p>
+                    <span class="badge-solution">Solución</span>
+                    <p>Cierra y vuelve a abrir la ventana de CMD para refrescar las variables de entorno. Si persiste, verifica que la ruta <code>C:\Program Files\Git\cmd</code> esté agregada en la variable <strong>Path</strong> del sistema.</p>
+                </div>
+            </details>
+
+            <!-- Problema 4 -->
+            <details class="accordion-item">
+                <summary>4. Advertencia de seguridad de certificado al conectar por RDP</summary>
+                <div class="accordion-content">
+                    <span class="badge-problem">Problema</span>
+                    <p>Windows muestra una alerta naranja o amarilla indicando que no se puede comprobar la identidad del equipo remoto.</p>
+                    <span class="badge-solution">Solución</span>
+                    <p>Es un comportamiento normal en servidores de laboratorio con certificados autofirmados. Verifica que la dirección IP coincida con la asignada por el administrador y haz clic en <strong>Conectar / Sí</strong>.</p>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- Footer con Información de Contacto -->
+    <footer id="contacto">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Sobre el Proyecto</h4>
+                <p>Práctica de despliegue web en entorno Windows Server con Active Directory e IIS.</p>
+                <p><strong>Universidad de Oriente (UNIVO)</strong><br>Ingeniería en Desarrollo de Software</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Datos del Estudiante</h4>
+                <ul>
+                    <li><strong>Nombre:</strong> [Tu Nombre Completo Aquí]</li>
+                    <li><strong>Grupo de Trabajo:</strong> [Número de Grupo]</li>
+                    <li><strong>Carpeta IIS:</strong> <code>/grupo/tu_nombre/</code></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Información de Contacto</h4>
+                <ul>
+                    <li><strong>Correo:</strong> <a href="mailto:tu.correo@univo.edu.sv">tu.correo@univo.edu.sv</a></li>
+                    <li><strong>GitHub:</strong> <a href="https://github.com/tu-usuario" target="_blank">github.com/tu-usuario</a></li>
+                    <li><strong>Teléfono / WhatsApp:</strong> +503 0000-0000</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 - Desarrollado con HTML5 y CSS3 Puro | Administración de Sistemas Operativos</p>
+        </div>
+    </footer>
+
+</body>
+</html>
